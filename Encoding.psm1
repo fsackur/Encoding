@@ -55,15 +55,14 @@ function Convert-FileEncoding {
         [string[]]
         ${LiteralPath},
         
-        [ValidateSet(
-            'unicode',
-            'bigendianunicode',
-            'utf8',
-            'utf7',
-            'utf32',
-            'ascii',
-            'default',
-            'oem'
+        [ValidateSet(   #[System.Text.Encoding] | Get-Member -Static -MemberType Property
+            'ASCII',
+            'BigEndianUnicode',
+            'Default',
+            'Unicode',
+            'UTF32',
+            'UTF7',
+            'UTF8'
         )]
         [Parameter(Position=1)]
         [string]

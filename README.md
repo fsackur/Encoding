@@ -57,3 +57,8 @@ Convert-FileEncoding accepts the same values for the -Encoding parameter as Out-
 PS C:\dev\RaxCloud> Get-FileEncoding .\README.md | Convert-FileEncoding -Encoding UTF8
 1  file(s) converted to UTF8 in .
 ```
+
+# Credits
+https://gist.github.com/jpoehls/2406504
+http://franckrichard.blogspot.com/2010/08/powershell-get-encoding-file-type.html
+https://github.com/indented-automation/Indented.StubCommand

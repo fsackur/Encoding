@@ -4,31 +4,177 @@
 function Convert-FileEncoding {
 <#
     .SYNOPSIS
-    Converts files to the given encoding.
+    Gets file encoding.
 
     .DESCRIPTION
-    Matches the include pattern recursively under the given path.
+    Usage is exactly like Get-ChildItem.
+
+    The function sets encoding on files. Results are undefined where the object is not a file.
+
+    This runs files through Out-File. File characteristics may be lost, such as the archive bit, system or hidden flags, or alternate filestreams. 
+    Binary files may no longer function as intended. File sizes may change. ACLs may change.
+
+    By default, converts to UTF-8. (Out-File defaults to UTF-16.)
 
     .EXAMPLE
-    Convert-FileEncoding -Include *.js -Path scripts -Encoding UTF8
+    Convert-FileEncoding
+    
+    This command converts child items in the current location to UTF-8 encoding. If the location is a file system directory, it gets the files and 
+    sub-directories in the current directory. If the item does not have child items, this command returns to the command prompt without doing
+    anything. Results are undefined when the item is not a file.
+
+    .EXAMPLE
+    Convert-FileEncoding –Path *.txt -Encoding Unicode -Recurse -Force
+    
+    This command converts the encoding of all of the .txt files in the current directory and its subdirectories to UTF-16. The Recurse parameter 
+    directs Windows PowerShell to get objects recursively, and it indicates that the subject of the command is the specified directory and its 
+    contents. The Force parameter includes hidden files.
+
+    .EXAMPLE
+    Convert-FileEncoding –Path C:\Windows\Logs\* -Encoding ascii -Include *.txt -Exclude A*
+    
+    This command converts the encoding of the .txt files in the Logs subdirectory to ASCII, except for those whose names start with the letter A. 
+    It uses the wildcard character (*) to indicate the contents of the Logs subdirectory, not the directory container. Because the command does 
+    not include the Recurse parameter, Convert-FileEncoding does not include the content of directory automatically; you need to specify it.
+
+    .NOTES
+    The parameter block was generated from Get-ChildItem using Indented.StubCommand, so you can use this command exactly like Get-ChildItem
+
+    .LINK
+    https://github.com/fsackur/Encoding
 #>
+    [CmdletBinding(DefaultParameterSetName='Items', SupportsTransactions=$true, HelpUri='https://github.com/fsackur/Encoding')]
+    [OutputType([void])]
     param (
-        [string]$Include,
-        [string]$Path,
-        [string]$Encoding='UTF8'
+        [Parameter(ParameterSetName='Items', Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [string[]]
+        ${Path},
+        
+        [Parameter(ParameterSetName='LiteralItems', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [Alias('PSPath')]
+        [string[]]
+        ${LiteralPath},
+        
+        [ValidateSet(
+            'unicode',
+            'bigendianunicode',
+            'utf8',
+            'utf7',
+            'utf32',
+            'ascii',
+            'default',
+            'oem'
+        )]
+        [Parameter(Position=1)]
+        [string]
+        ${Encoding} = 'utf8',
+
+        [Parameter(Position=2)]
+        [string]
+        ${Filter},
+        
+        [string[]]
+        ${Include},
+        
+        [string[]]
+        ${Exclude},
+        
+        [Alias('s')]
+        [switch]
+        ${Recurse},
+        
+        [uint32]
+        ${Depth},
+        
+        [switch]
+        ${Force},
+        
+        [switch]
+        ${Name}
     )
-
-    $count = 0
-
-    Get-ChildItem -Include $Pattern -Recurse -Path $Path |
-        select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} |
-        where {$_.Encoding -ne $Encoding} |
-        foreach { 
-            (Get-Content $_.FullName) |
-            Out-File $_.FullName -Encoding $Encoding; $count++;
+    
+    dynamicparam {
+        $parameters = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+        
+        # Attributes
+        $attributes = New-Object System.Collections.Generic.List[Attribute]
+        
+        $attribute = New-Object System.Management.Automation.ParameterAttribute
+        $attributes.Add($attribute)
+        
+        $parameter = New-Object System.Management.Automation.RuntimeDefinedParameter("Attributes", [System.Management.Automation.FlagsExpression`1[System.IO.FileAttributes]], $attributes)
+        $parameters.Add("Attributes", $parameter)
+        
+        # Directory
+        $attributes = New-Object System.Collections.Generic.List[Attribute]
+        
+        $attribute = New-Object System.Management.Automation.AliasAttribute('ad', 'd')
+        $attributes.Add($attribute)
+        
+        $attribute = New-Object System.Management.Automation.ParameterAttribute
+        $attributes.Add($attribute)
+        
+        $parameter = New-Object System.Management.Automation.RuntimeDefinedParameter("Directory", [System.Management.Automation.SwitchParameter], $attributes)
+        $parameters.Add("Directory", $parameter)
+        
+        # File
+        $attributes = New-Object System.Collections.Generic.List[Attribute]
+        
+        $attribute = New-Object System.Management.Automation.ParameterAttribute
+        $attributes.Add($attribute)
+        
+        $attribute = New-Object System.Management.Automation.AliasAttribute('af')
+        $attributes.Add($attribute)
+        
+        $parameter = New-Object System.Management.Automation.RuntimeDefinedParameter("File", [System.Management.Automation.SwitchParameter], $attributes)
+        $parameters.Add("File", $parameter)
+        
+        # Hidden
+        $attributes = New-Object System.Collections.Generic.List[Attribute]
+        
+        $attribute = New-Object System.Management.Automation.AliasAttribute('ah', 'h')
+        $attributes.Add($attribute)
+        
+        $attribute = New-Object System.Management.Automation.ParameterAttribute
+        $attributes.Add($attribute)
+        
+        $parameter = New-Object System.Management.Automation.RuntimeDefinedParameter("Hidden", [System.Management.Automation.SwitchParameter], $attributes)
+        $parameters.Add("Hidden", $parameter)
+        
+        # ReadOnly
+        $attributes = New-Object System.Collections.Generic.List[Attribute]
+        
+        $attribute = New-Object System.Management.Automation.AliasAttribute('ar')
+        $attributes.Add($attribute)
+        
+        $attribute = New-Object System.Management.Automation.ParameterAttribute
+        $attributes.Add($attribute)
+        
+        $parameter = New-Object System.Management.Automation.RuntimeDefinedParameter("ReadOnly", [System.Management.Automation.SwitchParameter], $attributes)
+        $parameters.Add("ReadOnly", $parameter)
+        
+        # System
+        $attributes = New-Object System.Collections.Generic.List[Attribute]
+        
+        $attribute = New-Object System.Management.Automation.ParameterAttribute
+        $attributes.Add($attribute)
+        
+        $attribute = New-Object System.Management.Automation.AliasAttribute('as')
+        $attributes.Add($attribute)
+        
+        $parameter = New-Object System.Management.Automation.RuntimeDefinedParameter("System", [System.Management.Automation.SwitchParameter], $attributes)
+        $parameters.Add("System", $parameter)
+        
+        return $parameters
+    }
+    
+    end {
+        $null = $PSBoundParameters.Remove('Encoding')
+        Get-ChildItem @PSBoundParameters | foreach {
+            $Content = Get-Content $_
+            $Content | Out-File $_.FullName -Encoding $Encoding
         }
-  
-    Write-Host "$count $Pattern file(s) converted to $Encoding in $Path."
+    }
 }
 
 

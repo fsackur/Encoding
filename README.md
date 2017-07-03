@@ -38,7 +38,7 @@ MERGE_MSG.lock                     C:\dev\RaxCloud\.git\MERGE_MSG.lock
 
 In the second example, the last file is empty, so has no encoding data associated.
 
-## WARNING
+WARNING
 
 ```powershell
 PS C:\dev\RaxCloud> Get-FileEncoding C:\WINDOWS\regedit.exe

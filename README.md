@@ -62,3 +62,4 @@ PS C:\dev\RaxCloud> Get-FileEncoding .\README.md | Convert-FileEncoding -Encodin
 https://gist.github.com/jpoehls/2406504
 http://franckrichard.blogspot.com/2010/08/powershell-get-encoding-file-type.html
 https://github.com/indented-automation/Indented.StubCommand
+http://www.west-wind.com/Weblog/posts/197245.aspx
